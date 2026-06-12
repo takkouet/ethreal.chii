@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.chiikawaofficial.com)",
+      "Bash(python3 /Users/theopham/.claude/skills/ui-ux-pro-max/scripts/search.py \"kawaii cute character anime merchandise ecommerce japanese\" --design-system -p \"Chiikawa\" -f markdown)",
+      "Bash(npm --version)",
+      "Bash(rtk npx *)",
+      "Bash(mv design.md /tmp/chiikawa_design.md && rtk npx --yes create-next-app@latest . --typescript --tailwind --app --no-src-dir --import-alias \"@/*\" --eslint --use-npm --turbopack --yes 2>&1 | tail -20; mv /tmp/chiikawa_design.md /Users/theopham/Documents/Apps/chiikawa/design.md)"
+    ],
+    "additionalDirectories": [
+      "/tmp"
+    ]
+  }
+}
