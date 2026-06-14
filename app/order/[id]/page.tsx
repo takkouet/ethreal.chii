@@ -81,16 +81,15 @@ export default async function OrderConfirmationPage({
               the QR below. Use your order ID{" "}
               <span className="font-mono">{order.id}</span> as the transfer note.
             </p>
-            <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row sm:items-start">
-              <div className="relative h-48 w-48 shrink-0 rounded-xl overflow-hidden border border-border">
-                <Image
-                  src={BANK.qrImage}
-                  alt="VietQR bank transfer code"
-                  fill
-                  sizes="192px"
-                  className="object-contain"
-                />
-              </div>
+            <div className="mt-4 flex flex-col gap-4">
+              <Image
+                src={BANK.qrImage}
+                alt="VietQR bank transfer code"
+                width={320}
+                height={420}
+                sizes="320px"
+                className="h-auto w-auto max-w-xs rounded-xl border border-border"
+              />
               <dl className="text-sm">
                 <dt className="text-muted">Bank</dt>
                 <dd className="font-medium">{BANK.name}</dd>
