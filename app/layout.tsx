@@ -17,6 +17,7 @@ const mplus = M_PLUS_Rounded_1c({
 export const metadata: Metadata = {
   title: "Chiikawa Market — ちいかわマーケット",
   description: "Buy Chiikawa goods. Delivered across Vietnam.",
+  icons: { icon: "/favicon.png" },
 };
 
 export default function RootLayout({
