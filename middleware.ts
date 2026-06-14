@@ -23,9 +23,20 @@ export async function middleware(req: NextRequest) {
   // Gate admin pages + admin APIs, except the login page and login API.
   const isLoginPage = pathname === "/admin/login";
   const isLoginApi = pathname === "/api/admin/login";
-  if (isLoginPage || isLoginApi) return NextResponse.next();
+  if (isLoginApi) return NextResponse.next();
 
   const authed = await hasValidSession(req);
+
+  // Already logged in → skip the login page, go straight to the dashboard.
+  if (isLoginPage) {
+    if (authed) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/admin";
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
   if (authed) return NextResponse.next();
 
   // Unauthenticated API → 401 JSON; pages → redirect to login.
