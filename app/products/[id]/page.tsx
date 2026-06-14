@@ -52,9 +52,6 @@ export default async function ProductDetailPage({
           </h1>
           <p className="mt-4 text-2xl font-extrabold text-ink">
             {formatVnd(product.priceVnd)}
-            <span className="ml-2 text-base font-normal text-muted">
-              (tax included)
-            </span>
           </p>
           <p className="mt-6 text-muted whitespace-pre-line leading-relaxed">
             {product.description}

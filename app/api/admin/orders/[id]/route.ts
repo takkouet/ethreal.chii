@@ -19,13 +19,37 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid status" }, { status: 400 });
   }
 
+  const nextStatus = body.status as (typeof STATUSES)[number];
+
   try {
-    const order = await prisma.order.update({
-      where: { id },
-      data: { status: body.status as (typeof STATUSES)[number] },
+    const order = await prisma.$transaction(async (tx) => {
+      const existing = await tx.order.findUnique({
+        where: { id },
+        include: { items: true },
+      });
+      if (!existing) throw new Error("NOT_FOUND");
+
+      // Cancelling an order that wasn't already cancelled → return stock.
+      if (nextStatus === "CANCELLED" && existing.status !== "CANCELLED") {
+        for (const item of existing.items) {
+          await tx.product.updateMany({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          });
+        }
+      }
+
+      return tx.order.update({
+        where: { id },
+        data: { status: nextStatus },
+      });
     });
     return NextResponse.json(order);
-  } catch {
-    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  } catch (e) {
+    if (e instanceof Error && e.message === "NOT_FOUND") {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+    return NextResponse.json({ error: "Update failed" }, { status: 500 });
   }
 }
+
