@@ -1,26 +1,175 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Design tokens — chiikawamarket.jp/en storefront palette (see design.md) */
+@theme {
+  /* Section accent colors (Shopify color-scheme values from cm-common.css) */
+  --color-pink: #ffc2ca;
+  --color-pink-pale: #ffeff2;
+  --color-yellow: #fffbbf;
+  --color-coral: #e77277; /* sale badge / primary button bg (use ink text: 5.68:1) */
+  --color-coral-dark: #cc3d44; /* when white text is needed (4.86:1) */
+
+  /* Cream base under the star-tile page background */
+  --color-background: #fffbef;
+  --color-cream: #fffbef;
+  --color-ink: #1d1d1d;
+  --color-heading: #1d1d1d; /* market headings are bold near-black */
+  --color-muted: #475569;
+  --color-border: #ececec;
+
+  /* M PLUS Rounded 1c — the real chiikawamarket.jp typeface */
+  --font-sans: var(--font-mplus), system-ui, sans-serif;
+  --font-display: var(--font-mplus), system-ui, sans-serif;
+
+  /* Light, soft card shadow (market cards: thin border + gentle lift) */
+  --shadow-soft: 0 6px 18px -10px rgb(29 29 29 / 0.22);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Real chiikawamarket.jp page background: tiling yellow-star pattern on cream */
+  background-color: var(--color-background);
+  background-image: url("/market/bg-ster.png");
+  background-size: 120px 120px;
+  background-repeat: repeat;
+  background-attachment: fixed;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.7;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--color-heading);
+}
+
+/* ── Animations (subtle — market site is calm) ───────────── */
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.animate-float { animation: float 6s ease-in-out infinite; }
+
+@keyframes wobble {
+  0%, 100% { transform: rotate(-2deg); }
+  50% { transform: rotate(2deg); }
+}
+.animate-wobble { animation: wobble 4s ease-in-out infinite; }
+
+/* Gentle continuous float for review cards — lively, calm (transform only) */
+@keyframes cardFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+.review-float {
+  animation: cardFloat 5s ease-in-out infinite;
+  transition: box-shadow 200ms ease-in-out;
+}
+.review-float:hover {
+  animation-play-state: paused;
+  box-shadow: 0 14px 26px -12px rgb(29 29 29 / 0.3);
+}
+
+@keyframes reveal {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-reveal { animation: reveal 0.5s ease-out both; }
+
+/*
+ * Scroll reveal — replicates chiikawamarket.jp (Shopify Dawn scroll-trigger
+ * animate--slide-in): hidden + nudged down, slides up + fades in on enter.
+ * Stagger via --reveal-order (each step 75ms), like the real site.
+ */
+@keyframes slideIn {
+  from { opacity: 0.01; transform: translateY(2rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.reveal {
+  opacity: 0.01;
+  transform: translateY(2rem);
+}
+.reveal.reveal--in {
+  animation: slideIn 0.6s cubic-bezier(0, 0, 0.3, 1) forwards;
+  animation-delay: calc(var(--reveal-order, 0) * 75ms);
+}
+
+/* ── Utilities ───────────────────────────────────────────── */
+
+.shadow-soft { box-shadow: var(--shadow-soft); }
+
+/*
+ * Pink vertical stripe — the real chiikawamarket.jp band (two-tone pink, no white).
+ * Exact asset: 5th-anniversary_bg.jpg. Used for header / footer / section bands
+ * to contrast against the starry page background.
+ */
+.bg-stripe {
+  background-color: var(--color-pink);
+  background-image: url("/market/stripe.jpg");
+  background-size: 760px auto;
+  background-repeat: repeat;
+}
+
+/* Hover lift for cards — translate only (no layout shift) */
+.hover-lift {
+  transition: transform 200ms ease-in-out, box-shadow 200ms ease-in-out;
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px -12px rgb(29 29 29 / 0.28);
+}
+
+/*
+ * Section title — chiikawamarket.jp "NEW ITEMS" style: centered bold heading,
+ * transparent background (sits directly on the section band).
+ */
+.section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent !important;
+  color: var(--color-ink);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+/* Visible focus ring on all interactive elements (a11y) */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible {
+  /* outline: 3px solid var(--color-coral); */
+  outline-offset: 2px;
+  border-radius: 9999px;
+}
+
+/* Vertical divider between nav items (not after the last) */
+.topMenu {
+  position: relative;
+}
+.topMenu:not(:last-child)::after {
+  content: "";
+  width: 1px;
+  height: 1em;
+  background-color: var(--color-ink);
+  position: absolute;
+  top: 50%;
+  right: -1rem; /* center in the gap-8 (2rem) */
+  transform: translateY(-50%);
+}
+
+/* Respect reduced motion (a11y) */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  body { background-attachment: scroll; }
 }
