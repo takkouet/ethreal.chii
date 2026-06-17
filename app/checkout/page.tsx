@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/components/cart-context";
@@ -28,6 +28,8 @@ export default function CheckoutPage() {
   const [payment, setPayment] = useState<PaymentMethod>("COD");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Stable per-attempt key so a double-click / retry dedupes to one order.
+  const idemKey = useRef(crypto.randomUUID());
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -51,7 +53,10 @@ export default function CheckoutPage() {
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idemKey.current,
+        },
         body: JSON.stringify(payload),
       });
       const data = await res.json();

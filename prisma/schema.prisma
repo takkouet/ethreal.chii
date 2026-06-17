@@ -17,10 +17,13 @@ model Product {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([active])
 }
 
 model Order {
   id            String        @id @default(cuid())
+  orderNumber   String        @unique @default(dbgenerated("('CHII-' || upper(substr(md5(gen_random_uuid()::text), 1, 6)))"))
   customerName  String
   phone         String
   email         String?
@@ -32,6 +35,9 @@ model Order {
   accessToken   String        @default(dbgenerated("gen_random_uuid()::text"))
   items         OrderItem[]
   createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([createdAt])
 }
 
 model OrderItem {
@@ -42,6 +48,13 @@ model OrderItem {
   productName String
   priceVnd    Int
   quantity    Int
+}
+
+model IdempotencyKey {
+  key         String   @id
+  orderId     String
+  accessToken String
+  createdAt   DateTime @default(now())
 }
 
 model AdminUser {

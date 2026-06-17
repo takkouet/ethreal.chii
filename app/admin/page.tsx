@@ -49,7 +49,7 @@ export default async function AdminDashboardPage() {
                       href={`/admin/orders/${o.id}`}
                       className="font-mono text-ink hover:underline cursor-pointer"
                     >
-                      {o.id.slice(0, 8)}
+                      {o.orderNumber}
                     </Link>
                   </td>
                   <td className="px-4 py-3">{o.customerName}</td>

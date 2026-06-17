@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { checkoutSchema } from "@/lib/validation";
 import { rateLimit } from "@/lib/rate-limit";
@@ -12,6 +13,21 @@ export async function POST(req: Request) {
       { error: "Too many requests. Please slow down." },
       { status: 429 }
     );
+  }
+
+  // Idempotency: a duplicate submit with the same key returns the original
+  // order instead of creating a second one (double-click, network retry).
+  const idemKey = req.headers.get("idempotency-key")?.slice(0, 200) || null;
+  if (idemKey) {
+    const existing = await prisma.idempotencyKey.findUnique({
+      where: { key: idemKey },
+    });
+    if (existing) {
+      return NextResponse.json({
+        orderId: existing.orderId,
+        token: existing.accessToken,
+      });
+    }
   }
 
   let body: unknown;
@@ -86,7 +102,7 @@ export async function POST(req: Request) {
           throw new OutOfStockError(i.productName);
         }
       }
-      return tx.order.create({
+      const created = await tx.order.create({
         data: {
           customerName: input.customerName,
           phone: input.phone,
@@ -99,6 +115,18 @@ export async function POST(req: Request) {
           items: { create: orderItems },
         },
       });
+
+      // Record the idempotency key in the SAME transaction. If a concurrent
+      // request already created an order for this key, the unique PK conflicts
+      // and the whole txn rolls back (stock decrement included) — no oversell,
+      // no duplicate order.
+      if (idemKey) {
+        await tx.idempotencyKey.create({
+          data: { key: idemKey, orderId: created.id, accessToken },
+        });
+      }
+
+      return created;
     });
 
     return NextResponse.json({ orderId: order.id, token: accessToken });
@@ -108,6 +136,23 @@ export async function POST(req: Request) {
         { error: `Not enough stock for ${e.productName}` },
         { status: 409 }
       );
+    }
+    // Concurrent duplicate with same idempotency key: the loser rolled back.
+    // Return the order the winner created.
+    if (
+      idemKey &&
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      const existing = await prisma.idempotencyKey.findUnique({
+        where: { key: idemKey },
+      });
+      if (existing) {
+        return NextResponse.json({
+          orderId: existing.orderId,
+          token: existing.accessToken,
+        });
+      }
     }
     console.error("Checkout failed:", e);
     return NextResponse.json({ error: "Checkout failed" }, { status: 500 });

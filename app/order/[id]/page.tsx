@@ -36,7 +36,7 @@ export default async function OrderConfirmationPage({
   if (!authorized) {
     return (
       <Reveal as="section" className="mx-auto max-w-2xl px-4 sm:px-6 py-12 sm:py-16">
-        <h1 className="text-2xl font-bold">Order {order.id.slice(0, 8)}</h1>
+        <h1 className="text-2xl font-bold">Order {order.orderNumber}</h1>
         <p className="mt-3 text-muted">
           Status: <strong>{order.status}</strong> · Total:{" "}
           <strong>{formatVnd(order.totalVnd)}</strong>
@@ -63,8 +63,8 @@ export default async function OrderConfirmationPage({
         </h1>
       </div>
       <p className="mt-3 text-muted">
-        Thank you, {order.customerName}. Your order ID is{" "}
-        <span className="font-mono font-medium text-ink">{order.id}</span>.
+        Thank you, {order.customerName}. Your order number is{" "}
+        <span className="font-mono font-medium text-ink">{order.orderNumber}</span>.
       </p>
 
       {/* Items */}
@@ -104,8 +104,8 @@ export default async function OrderConfirmationPage({
           <div className="mt-3">
             <p className="text-muted">
               Please transfer <strong>{formatVnd(order.totalVnd)}</strong> using
-              the QR below. Use your order ID{" "}
-              <span className="font-mono">{order.id}</span> as the transfer note.
+              the QR below. Use your order number{" "}
+              <span className="font-mono">{order.orderNumber}</span> as the transfer note.
             </p>
             <div className="mt-4 flex flex-col gap-4">
               <Image

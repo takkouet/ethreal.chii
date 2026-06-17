@@ -34,7 +34,7 @@ export default async function AdminOrderDetailPage({
         <h1 className="text-3xl font-bold">
           Order{" "}
           <span className="font-mono text-xl text-muted">
-            {order.id.slice(0, 8)}
+            {order.orderNumber}
           </span>
         </h1>
         <OrderStatusControl
