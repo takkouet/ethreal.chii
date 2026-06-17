@@ -13,6 +13,7 @@ type ProductData = {
   imageUrl: string;
   stock: number;
   active: boolean;
+  category: string | null;
 };
 
 export function ProductForm({ initial }: { initial?: ProductData }) {
@@ -60,6 +61,7 @@ export function ProductForm({ initial }: { initial?: ProductData }) {
       priceVnd: Number(form.get("priceVnd") || 0),
       stock: Number(form.get("stock") || 0),
       active: form.get("active") === "on",
+      category: String(form.get("category") || "").trim() || null,
       imageUrl,
     };
 
@@ -147,6 +149,19 @@ export function ProductForm({ initial }: { initial?: ProductData }) {
             className={inputClass}
           />
         </div>
+      </div>
+
+      <div>
+        <label htmlFor="category" className="text-sm font-medium">
+          Category (optional)
+        </label>
+        <input
+          id="category"
+          name="category"
+          placeholder="e.g. Plush, Stationery, Chiikawa"
+          defaultValue={initial?.category ?? ""}
+          className={inputClass}
+        />
       </div>
 
       <div>

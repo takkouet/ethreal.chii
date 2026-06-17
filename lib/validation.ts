@@ -30,6 +30,7 @@ export const productSchema = z.object({
   imageUrl: z.string().url(),
   stock: z.number().int().min(0).max(100000),
   active: z.boolean(),
+  category: z.string().max(60).nullable().optional(),
 });
 
 export type ProductInput = z.infer<typeof productSchema>;

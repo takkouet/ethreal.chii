@@ -1,12 +1,38 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatVnd } from "@/lib/money";
+import { siteUrl } from "@/lib/site";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Reveal } from "@/components/reveal";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const product = await prisma.product.findUnique({ where: { id } });
+  if (!product || !product.active) return { title: "Product not found" };
+
+  const description = product.description.slice(0, 160);
+  return {
+    title: product.name,
+    description,
+    alternates: { canonical: `/products/${product.id}` },
+    openGraph: {
+      type: "website",
+      title: product.name,
+      description,
+      url: `/products/${product.id}`,
+      images: [{ url: product.imageUrl }],
+    },
+  };
+}
 
 export default async function ProductDetailPage({
   params,
@@ -20,8 +46,31 @@ export default async function ProductDetailPage({
 
   const inStock = product.stock > 0;
 
+  // Product JSON-LD for rich results.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.imageUrl,
+    ...(product.category ? { category: product.category } : {}),
+    offers: {
+      "@type": "Offer",
+      price: product.priceVnd,
+      priceCurrency: "VND",
+      availability: inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+      url: `${siteUrl()}/products/${product.id}`,
+    },
+  };
+
   return (
     <section className="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Link
         href="/products"
         className="text-muted hover:text-coral transition-colors duration-200 cursor-pointer"

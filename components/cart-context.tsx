@@ -42,8 +42,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
           typeof parsed.savedAt === "number" &&
           Date.now() - parsed.savedAt <= CART_TTL_MS;
         if (fresh) {
+          // Backfill stock for carts saved before `stock` was tracked, so the
+          // quantity clamp (Math.min) never sees undefined.
+          const items: CartItem[] = parsed.items.map((i: CartItem) => ({
+            ...i,
+            stock: typeof i.stock === "number" ? i.stock : i.quantity,
+          }));
           // eslint-disable-next-line react-hooks/set-state-in-effect
-          setItems(parsed.items);
+          setItems(items);
         } else {
           localStorage.removeItem(STORAGE_KEY);
         }

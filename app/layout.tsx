@@ -3,6 +3,7 @@ import { M_PLUS_Rounded_1c } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/cart-context";
 import { ToastProvider } from "@/components/toast";
+import { siteUrl } from "@/lib/site";
 import { AnnouncementBar } from "@/components/announcement-bar";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -16,9 +17,20 @@ const mplus = M_PLUS_Rounded_1c({
 });
 
 export const metadata: Metadata = {
-  title: "Chiikawa Market — ちいかわマーケット",
+  metadataBase: new URL(siteUrl()),
+  title: {
+    default: "Chiikawa Market — ちいかわマーケット",
+    template: "%s — Chiikawa Market",
+  },
   description: "Buy Chiikawa goods. Delivered across Vietnam.",
   icons: { icon: "/favicon.png" },
+  openGraph: {
+    type: "website",
+    siteName: "Chiikawa Market",
+    title: "Chiikawa Market — ちいかわマーケット",
+    description: "Buy Chiikawa goods. Delivered across Vietnam.",
+  },
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 /* Brand SVGs (Simple Icons paths) — lucide-react has no brand logos. */
 const socials = [
   {
@@ -22,6 +24,13 @@ export function SiteFooter() {
     <footer className="mt-auto border-t border-border bg-stripe">
       <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-5 sm:flex-row sm:justify-between">
         <span className="text-lg font-extrabold text-coral">ethereal.chii</span>
+
+        <Link
+          href="/orders/lookup"
+          className="text-sm font-medium text-ink hover:text-coral transition-colors duration-200 cursor-pointer"
+        >
+          Track your order
+        </Link>
 
         <nav className="flex items-center gap-2" aria-label="Social media">
           {socials.map(({ href, label, path }) => (

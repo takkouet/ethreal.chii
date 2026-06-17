@@ -27,6 +27,7 @@ export default async function EditProductPage({
           imageUrl: product.imageUrl,
           stock: product.stock,
           active: product.active,
+          category: product.category,
         }}
       />
     </>
