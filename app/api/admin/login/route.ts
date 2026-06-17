@@ -2,8 +2,18 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { createSession } from "@/lib/auth";
+import { rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/request";
 
 export async function POST(req: Request) {
+  // Brute-force protection: 5 attempts per IP per 15 minutes.
+  if (!rateLimit(`login:${clientIp(req)}`, 5, 15 * 60_000)) {
+    return NextResponse.json(
+      { error: "Too many login attempts. Try again later." },
+      { status: 429 }
+    );
+  }
+
   let body: { email?: string; password?: string };
   try {
     body = await req.json();

@@ -1,8 +1,19 @@
+import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { checkoutSchema } from "@/lib/validation";
+import { rateLimit } from "@/lib/rate-limit";
+import { clientIp } from "@/lib/request";
 
 export async function POST(req: Request) {
+  // Rate limit by IP — prevents checkout spam / fake-order flooding.
+  if (!rateLimit(`checkout:${clientIp(req)}`, 10, 60_000)) {
+    return NextResponse.json(
+      { error: "Too many requests. Please slow down." },
+      { status: 429 }
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -59,28 +70,52 @@ export async function POST(req: Request) {
     0
   );
 
-  // Create order + decrement stock atomically.
-  const order = await prisma.$transaction(async (tx) => {
-    const created = await tx.order.create({
-      data: {
-        customerName: input.customerName,
-        phone: input.phone,
-        email: input.email || null,
-        address: input.address,
-        note: input.note || null,
-        paymentMethod: input.paymentMethod,
-        totalVnd,
-        items: { create: orderItems },
-      },
-    });
-    for (const i of orderItems) {
-      await tx.product.update({
-        where: { id: i.productId },
-        data: { stock: { decrement: i.quantity } },
-      });
-    }
-    return created;
-  });
+  const accessToken = randomBytes(24).toString("hex");
 
-  return NextResponse.json({ orderId: order.id });
+  // Create order + decrement stock atomically. Stock is guarded INSIDE the
+  // transaction with a conditional update so concurrent checkouts cannot
+  // oversell: updateMany only matches rows that still have enough stock.
+  try {
+    const order = await prisma.$transaction(async (tx) => {
+      for (const i of orderItems) {
+        const res = await tx.product.updateMany({
+          where: { id: i.productId, active: true, stock: { gte: i.quantity } },
+          data: { stock: { decrement: i.quantity } },
+        });
+        if (res.count === 0) {
+          throw new OutOfStockError(i.productName);
+        }
+      }
+      return tx.order.create({
+        data: {
+          customerName: input.customerName,
+          phone: input.phone,
+          email: input.email || null,
+          address: input.address,
+          note: input.note || null,
+          paymentMethod: input.paymentMethod,
+          totalVnd,
+          accessToken,
+          items: { create: orderItems },
+        },
+      });
+    });
+
+    return NextResponse.json({ orderId: order.id, token: accessToken });
+  } catch (e) {
+    if (e instanceof OutOfStockError) {
+      return NextResponse.json(
+        { error: `Not enough stock for ${e.productName}` },
+        { status: 409 }
+      );
+    }
+    console.error("Checkout failed:", e);
+    return NextResponse.json({ error: "Checkout failed" }, { status: 500 });
+  }
+}
+
+class OutOfStockError extends Error {
+  constructor(public productName: string) {
+    super("OUT_OF_STOCK");
+  }
 }

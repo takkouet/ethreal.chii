@@ -61,7 +61,7 @@ export default function CheckoutPage() {
         return;
       }
       clear();
-      router.push(`/order/${data.orderId}`);
+      router.push(`/order/${data.orderId}?t=${data.token}`);
     } catch {
       setError("Network error. Please try again.");
       setSubmitting(false);

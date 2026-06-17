@@ -29,6 +29,7 @@ model Order {
   paymentMethod PaymentMethod
   status        OrderStatus   @default(PENDING)
   totalVnd      Int
+  accessToken   String        @default(dbgenerated("gen_random_uuid()::text"))
   items         OrderItem[]
   createdAt     DateTime      @default(now())
 }

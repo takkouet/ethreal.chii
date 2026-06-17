@@ -17,8 +17,34 @@ async function hasValidSession(req: NextRequest): Promise<boolean> {
   }
 }
 
+const MUTATION_METHODS = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+
+/**
+ * CSRF defense for cookie-authed admin APIs: require the request Origin (or
+ * Referer) to match the app's own host on state-changing methods. Same-origin
+ * fetches from the admin UI pass; forged cross-site form posts do not.
+ */
+function isSameOrigin(req: NextRequest): boolean {
+  const origin = req.headers.get("origin") ?? req.headers.get("referer");
+  if (!origin) return false;
+  try {
+    return new URL(origin).host === req.nextUrl.host;
+  } catch {
+    return false;
+  }
+}
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // CSRF: block cross-origin admin mutations before anything else.
+  if (
+    pathname.startsWith("/api/admin") &&
+    MUTATION_METHODS.has(req.method) &&
+    !isSameOrigin(req)
+  ) {
+    return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
+  }
 
   // Gate admin pages + admin APIs, except the login page and login API.
   const isLoginPage = pathname === "/admin/login";

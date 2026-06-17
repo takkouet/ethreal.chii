@@ -17,16 +17,42 @@ const BANK = {
 
 export default async function OrderConfirmationPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ t?: string }>;
 }) {
   const { id } = await params;
+  const { t } = await searchParams;
   const order = await prisma.order.findUnique({
     where: { id },
     include: { items: true },
   });
 
   if (!order) notFound();
+
+  // IDOR guard: full details (incl. PII) only with the order's access token.
+  const authorized = Boolean(t) && t === order.accessToken;
+  if (!authorized) {
+    return (
+      <Reveal as="section" className="mx-auto max-w-2xl px-4 sm:px-6 py-12 sm:py-16">
+        <h1 className="text-2xl font-bold">Order {order.id.slice(0, 8)}</h1>
+        <p className="mt-3 text-muted">
+          Status: <strong>{order.status}</strong> · Total:{" "}
+          <strong>{formatVnd(order.totalVnd)}</strong>
+        </p>
+        <p className="mt-4 text-sm text-muted">
+          For full order details, open the confirmation link from your checkout.
+        </p>
+        <Link
+          href="/products"
+          className="mt-8 inline-flex rounded-full bg-coral px-6 py-3 font-medium text-ink hover:bg-coral-dark hover:text-white transition-colors duration-200 cursor-pointer"
+        >
+          Continue shopping
+        </Link>
+      </Reveal>
+    );
+  }
 
   return (
     <Reveal as="section" className="mx-auto max-w-2xl px-4 sm:px-6 py-12 sm:py-16">

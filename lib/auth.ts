@@ -1,14 +1,13 @@
 import "server-only";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
+import { getAuthSecret } from "@/lib/env";
 
 const COOKIE_NAME = "chiikawa_admin";
-const MAX_AGE = 60 * 60 * 24 * 7; // 7 days
+const MAX_AGE = 60 * 60 * 24 * 2; // 2 days
 
 function secret(): Uint8Array {
-  const s = process.env.AUTH_SECRET;
-  if (!s) throw new Error("AUTH_SECRET is not set");
-  return new TextEncoder().encode(s);
+  return new TextEncoder().encode(getAuthSecret());
 }
 
 export async function createSession(adminId: string): Promise<void> {
