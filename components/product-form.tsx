@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { useToast } from "./toast";
 
 type ProductData = {
   id?: string;
@@ -16,6 +17,7 @@ type ProductData = {
 
 export function ProductForm({ initial }: { initial?: ProductData }) {
   const router = useRouter();
+  const { toast } = useToast();
   const editing = Boolean(initial?.id);
 
   const [imageUrl, setImageUrl] = useState(initial?.imageUrl ?? "");
@@ -76,6 +78,7 @@ export function ProductForm({ initial }: { initial?: ProductData }) {
       setSubmitting(false);
       return;
     }
+    toast(editing ? "Product updated" : "Product created");
     router.push("/admin/products");
     router.refresh();
   }
@@ -165,7 +168,7 @@ export function ProductForm({ initial }: { initial?: ProductData }) {
               alt="Product preview"
               fill
               sizes="128px"
-              className="object-cover"
+              className="object-contain p-2"
             />
           </div>
         )}

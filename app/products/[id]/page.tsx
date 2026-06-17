@@ -69,6 +69,7 @@ export default async function ProductDetailPage({
                 name: product.name,
                 priceVnd: product.priceVnd,
                 imageUrl: product.imageUrl,
+                stock: product.stock,
               }}
             />
           </div>

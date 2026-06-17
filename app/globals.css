@@ -142,8 +142,11 @@ h1, h2, h3, h4 {
 /* Visible focus ring on all interactive elements (a11y) */
 a:focus-visible,
 button:focus-visible,
-[role="button"]:focus-visible {
-  /* outline: 3px solid var(--color-coral); */
+[role="button"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--color-coral);
   outline-offset: 2px;
   border-radius: 9999px;
 }
@@ -161,6 +164,27 @@ button:focus-visible,
   top: 50%;
   right: -1rem; /* center in the gap-8 (2rem) */
   transform: translateY(-50%);
+}
+
+/* Print: receipt only — strip chrome, animations, backgrounds (ink on white). */
+@media print {
+  header,
+  footer,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
 }
 
 /* Respect reduced motion (a11y) */

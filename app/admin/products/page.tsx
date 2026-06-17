@@ -47,13 +47,13 @@ export default async function AdminProductsPage() {
                   className="border-t border-border hover:bg-pink-pale transition-colors duration-200"
                 >
                   <td className="px-4 py-3">
-                    <div className="relative h-12 w-12 rounded-lg overflow-hidden bg-pink-pale">
+                    <div className="relative h-12 w-12 rounded-lg overflow-hidden border border-border bg-white">
                       <Image
                         src={p.imageUrl}
                         alt={p.name}
                         fill
                         sizes="48px"
-                        className="object-cover"
+                        className="object-contain p-0.5"
                       />
                     </div>
                   </td>

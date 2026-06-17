@@ -4,11 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/components/cart-context";
+import { useToast } from "@/components/toast";
 import { formatVnd } from "@/lib/money";
 import { Reveal } from "@/components/reveal";
 
 export default function CartPage() {
   const { items, totalVnd, setQuantity, remove } = useCart();
+  const { toast } = useToast();
 
   return (
     <Reveal as="section" className="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-16">
@@ -32,13 +34,13 @@ export default function CartPage() {
                 key={item.productId}
                 className="flex gap-4 rounded-2xl border border-border bg-white p-4"
               >
-                <div className="relative h-24 w-24 shrink-0 rounded-xl overflow-hidden bg-pink-pale">
+                <div className="relative h-24 w-24 shrink-0 rounded-xl overflow-hidden border border-border bg-white">
                   <Image
                     src={item.imageUrl}
                     alt={item.name}
                     fill
                     sizes="96px"
-                    className="object-cover"
+                    className="object-contain p-1.5"
                   />
                 </div>
 
@@ -47,7 +49,10 @@ export default function CartPage() {
                     <h3 className="font-semibold">{item.name}</h3>
                     <button
                       type="button"
-                      onClick={() => remove(item.productId)}
+                      onClick={() => {
+                        remove(item.productId);
+                        toast(`Removed ${item.name} from cart`);
+                      }}
                       aria-label={`Remove ${item.name}`}
                       className="text-muted hover:text-coral transition-colors duration-200 cursor-pointer"
                     >
@@ -75,8 +80,9 @@ export default function CartPage() {
                         onClick={() =>
                           setQuantity(item.productId, item.quantity + 1)
                         }
+                        disabled={item.quantity >= item.stock}
                         aria-label="Increase quantity"
-                        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border hover:bg-pink-pale transition-colors duration-200 cursor-pointer"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border hover:bg-pink-pale transition-colors duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                       >
                         <Plus className="h-4 w-4" aria-hidden="true" />
                       </button>
@@ -85,6 +91,11 @@ export default function CartPage() {
                       {formatVnd(item.priceVnd * item.quantity)}
                     </p>
                   </div>
+                  {item.quantity >= item.stock && (
+                    <p className="mt-1 text-xs text-coral-dark">
+                      Max available: {item.stock}
+                    </p>
+                  )}
                 </div>
               </li>
             ))}

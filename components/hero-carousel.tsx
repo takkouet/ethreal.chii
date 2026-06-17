@@ -78,7 +78,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         type="button"
         onClick={() => go(index - 1)}
         aria-label="Previous slide"
-        className="absolute left-2 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-soft hover:bg-white transition-colors duration-200 cursor-pointer"
+        className="absolute left-2 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-soft hover:bg-white transition-colors duration-200 cursor-pointer"
       >
         <ChevronLeft className="h-5 w-5" aria-hidden="true" />
       </button>
@@ -86,7 +86,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         type="button"
         onClick={() => go(index + 1)}
         aria-label="Next slide"
-        className="absolute right-2 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-soft hover:bg-white transition-colors duration-200 cursor-pointer"
+        className="absolute right-2 top-1/2 inline-flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-ink shadow-soft hover:bg-white transition-colors duration-200 cursor-pointer"
       >
         <ChevronRight className="h-5 w-5" aria-hidden="true" />
       </button>

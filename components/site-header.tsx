@@ -45,6 +45,7 @@ export function SiteHeader() {
           <div className="flex flex-1 items-center justify-end gap-2">
             <Link
               href="/admin"
+              aria-label="Admin account"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white px-4 py-2 text-sm font-bold text-ink shadow-soft hover:bg-pink-pale transition-colors duration-200 cursor-pointer"
             >
               <User className="h-4 w-4" aria-hidden="true" />

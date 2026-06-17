@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useToast } from "./toast";
 import type { OrderStatus } from "@/lib/types";
 
 const STATUSES: OrderStatus[] = ["PENDING", "PAID", "SHIPPED", "CANCELLED"];
@@ -14,13 +15,12 @@ export function OrderStatusControl({
   current: OrderStatus;
 }) {
   const router = useRouter();
+  const { toast } = useToast();
   const [status, setStatus] = useState<OrderStatus>(current);
   const [busy, setBusy] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   async function update(next: OrderStatus) {
     setBusy(true);
-    setSaved(false);
     const res = await fetch(`/api/admin/orders/${orderId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -29,11 +29,10 @@ export function OrderStatusControl({
     setBusy(false);
     if (res.ok) {
       setStatus(next);
-      setSaved(true);
+      toast(`Order marked ${next}`);
       router.refresh();
-      setTimeout(() => setSaved(false), 1500);
     } else {
-      alert("Update failed.");
+      toast("Update failed", "error");
     }
   }
 
@@ -55,7 +54,6 @@ export function OrderStatusControl({
           </option>
         ))}
       </select>
-      {saved && <span className="text-sm text-ink">Saved ✓</span>}
     </div>
   );
 }

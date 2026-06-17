@@ -68,13 +68,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setItems((prev) => {
       const existing = prev.find((i) => i.productId === item.productId);
       if (existing) {
+        // Refresh the cached stock from the latest add, then clamp.
+        const cap = item.stock;
         return prev.map((i) =>
           i.productId === item.productId
-            ? { ...i, quantity: i.quantity + qty }
+            ? {
+                ...i,
+                stock: cap,
+                quantity: Math.min(i.quantity + qty, cap),
+              }
             : i
         );
       }
-      return [...prev, { ...item, quantity: qty }];
+      return [...prev, { ...item, quantity: Math.min(qty, item.stock) }];
     });
   }, []);
 
@@ -83,7 +89,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       qty <= 0
         ? prev.filter((i) => i.productId !== productId)
         : prev.map((i) =>
-            i.productId === productId ? { ...i, quantity: qty } : i
+            i.productId === productId
+              ? { ...i, quantity: Math.min(qty, i.stock) }
+              : i
           )
     );
   }, []);

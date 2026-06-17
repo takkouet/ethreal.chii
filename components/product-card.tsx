@@ -16,6 +16,7 @@ export function ProductCard({ id, name, priceVnd, imageUrl, stock }: Props) {
   return (
     <Link
       href={`/products/${id}`}
+      aria-label={`${name}, ${formatVnd(priceVnd)}${soldOut ? ", sold out" : ""}`}
       className="hover-lift group relative block rounded-2xl border border-border bg-white overflow-hidden cursor-pointer"
     >
       <div className="relative aspect-square bg-white">
@@ -24,7 +25,9 @@ export function ProductCard({ id, name, priceVnd, imageUrl, stock }: Props) {
           alt={name}
           fill
           sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className="object-contain p-3 transition-transform duration-300 group-hover:scale-105"
+          className={`object-contain p-3 transition-transform duration-300 group-hover:scale-105 ${
+            soldOut ? "opacity-60 grayscale" : ""
+          }`}
         />
         {soldOut && (
           <span className="absolute left-2 top-2 rounded-md bg-[#6b7280] px-2 py-1 text-xs font-bold text-white">

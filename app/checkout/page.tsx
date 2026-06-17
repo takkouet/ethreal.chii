@@ -4,7 +4,9 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCart } from "@/components/cart-context";
+import { useToast } from "@/components/toast";
 import { formatVnd } from "@/lib/money";
+import { checkoutSchema } from "@/lib/validation";
 import type { PaymentMethod } from "@/lib/types";
 import { Reveal } from "@/components/reveal";
 
@@ -25,16 +27,18 @@ const paymentOptions: { value: PaymentMethod; label: string; hint: string }[] = 
 export default function CheckoutPage() {
   const { items, totalVnd, clear } = useCart();
   const router = useRouter();
+  const { toast } = useToast();
   const [payment, setPayment] = useState<PaymentMethod>("COD");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   // Stable per-attempt key so a double-click / retry dedupes to one order.
   const idemKey = useRef(crypto.randomUUID());
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
+    setFieldErrors({});
 
     const form = new FormData(e.currentTarget);
     const payload = {
@@ -50,6 +54,20 @@ export default function CheckoutPage() {
       })),
     };
 
+    // Validate client-side with the same schema the API uses.
+    const result = checkoutSchema.safeParse(payload);
+    if (!result.success) {
+      const errs: Record<string, string> = {};
+      for (const issue of result.error.issues) {
+        const key = String(issue.path[0]);
+        if (key && !errs[key]) errs[key] = issue.message;
+      }
+      setFieldErrors(errs);
+      toast("Please fix the highlighted fields", "error");
+      return;
+    }
+
+    setSubmitting(true);
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
@@ -66,6 +84,7 @@ export default function CheckoutPage() {
         return;
       }
       clear();
+      toast("Order placed! 🎉");
       router.push(`/order/${data.orderId}?t=${data.token}`);
     } catch {
       setError("Network error. Please try again.");
@@ -90,6 +109,13 @@ export default function CheckoutPage() {
 
   const inputClass =
     "mt-1 w-full rounded-xl border border-border bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-coral";
+  const errClass = "border-coral-dark ring-2 ring-coral-dark/40";
+  const fieldCls = (name: string) =>
+    `${inputClass} ${fieldErrors[name] ? errClass : ""}`;
+  const fieldError = (name: string) =>
+    fieldErrors[name] ? (
+      <p className="mt-1 text-sm text-coral-dark">{fieldErrors[name]}</p>
+    ) : null;
 
   return (
     <Reveal as="section" className="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-16">
@@ -112,8 +138,10 @@ export default function CheckoutPage() {
                   id="customerName"
                   name="customerName"
                   required
-                  className={inputClass}
+                  aria-invalid={Boolean(fieldErrors.customerName)}
+                  className={fieldCls("customerName")}
                 />
+                {fieldError("customerName")}
               </div>
               <div>
                 <label htmlFor="phone" className="text-sm font-medium">
@@ -124,8 +152,10 @@ export default function CheckoutPage() {
                   name="phone"
                   type="tel"
                   required
-                  className={inputClass}
+                  aria-invalid={Boolean(fieldErrors.phone)}
+                  className={fieldCls("phone")}
                 />
+                {fieldError("phone")}
               </div>
               <div>
                 <label htmlFor="email" className="text-sm font-medium">
@@ -135,8 +165,10 @@ export default function CheckoutPage() {
                   id="email"
                   name="email"
                   type="email"
-                  className={inputClass}
+                  aria-invalid={Boolean(fieldErrors.email)}
+                  className={fieldCls("email")}
                 />
+                {fieldError("email")}
               </div>
               <div className="sm:col-span-2">
                 <label htmlFor="address" className="text-sm font-medium">
@@ -147,8 +179,10 @@ export default function CheckoutPage() {
                   name="address"
                   required
                   rows={3}
-                  className={inputClass}
+                  aria-invalid={Boolean(fieldErrors.address)}
+                  className={fieldCls("address")}
                 />
+                {fieldError("address")}
               </div>
               <div className="sm:col-span-2">
                 <label htmlFor="note" className="text-sm font-medium">

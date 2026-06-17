@@ -5,6 +5,7 @@ import { CheckCircle } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatVnd } from "@/lib/money";
 import { Reveal } from "@/components/reveal";
+import { PrintButton } from "@/components/print-button";
 
 export const dynamic = "force-dynamic";
 
@@ -141,12 +142,15 @@ export default async function OrderConfirmationPage({
         )}
       </div>
 
-      <Link
-        href="/products"
-        className="mt-8 inline-flex rounded-full bg-coral px-6 py-3 font-medium text-ink hover:bg-coral-dark hover:text-white transition-colors duration-200 cursor-pointer"
-      >
-        Continue shopping
-      </Link>
+      <div className="mt-8 flex flex-wrap gap-3">
+        <Link
+          href="/products"
+          className="no-print inline-flex rounded-full bg-coral px-6 py-3 font-medium text-ink hover:bg-coral-dark hover:text-white transition-colors duration-200 cursor-pointer"
+        >
+          Continue shopping
+        </Link>
+        <PrintButton />
+      </div>
     </Reveal>
   );
 }
